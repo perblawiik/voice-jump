@@ -54,6 +54,9 @@ let mic = new p5.AudioIn();
 let micIsActive = false;
 // Frequency text output
 let frequencyText;
+let speedXText;
+let speedYText;
+let amplitudeText;
 
 let game = new Phaser.Game(config);
 
@@ -83,12 +86,18 @@ function create ()
     platforms.create(50, 250, 'ground');
     platforms.create(750, 220, 'ground');
 
+    platforms.children.iterate(function (child) {
+
+        child.body.friction = {x:0, y:0};
+    });
+
     // The player and its settings
     player = this.physics.add.sprite(100, 450, 'dude');
 
     //  Player physics properties. Give the little guy a slight bounce.
     player.setBounce(0.2);
     player.setCollideWorldBounds(true);
+    player.body.friction = {x:0,y:0};
 
     //  Our player animations, turning, walking left and walking right.
     this.anims.create({
@@ -134,8 +143,10 @@ function create ()
     scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
 
     //  The frequency
-    frequencyText = this.add.text(16, 64, 'Frequency: 0 Hz', { fontSize: '32px', fill: '#000' });
-
+/*    frequencyText = this.add.text(16, 64, 'Frequency: 0 Hz', { fontSize: '32px', fill: '#000' });
+    speedXText = this.add.text(16, 112, 'Frequency: 0 Hz', { fontSize: '32px', fill: '#000' });
+    speedYText = this.add.text(16, 150, 'Frequency: 0 Hz', { fontSize: '32px', fill: '#000' });
+    amplitudeText = this.add.text(16, 198, 'Frequency: 0 Hz', { fontSize: '32px', fill: '#000' });*/
 
     //  Collide the player and the stars with the platforms
     this.physics.add.collider(player, platforms);
@@ -191,22 +202,48 @@ function update ()
         // Get frequency spectrum
         let spectrum = fft.analyze();
 
-        console.log(spectrum);
         // Find the most dominating frequency
         let maxAmplitude = Math.max.apply(null, spectrum);
         let frequency = 0;
         if (maxAmplitude > 0) {
             // Find the index of the frequency
             let n = spectrum.indexOf(maxAmplitude);
-            console.log(n);
             // Calculate the frequency
             frequency = Math.round((n+1)*sampleResolution);
+            frequency = Math.log10(Math.min(1000, Math.max(0, frequency)));
         }
-        frequencyText.setText('Frequency: ' + frequency + " Hz");
+
+        let maxFreq = 3;
+        let maxDegree = Math.PI/2;
+        let length = Math.min(500, 2*maxAmplitude);
+        let theta = frequency*maxDegree/maxFreq;
+
+        theta = Math.min(maxDegree, theta);
+        theta = Math.max(0, theta);
+
+        let speedX = length*Math.cos(theta);
+        let speedY = -1*length*Math.sin(theta);
+
+
+        console.log("theta: " + theta*180/Math.PI);
+        console.log("speedX: " + speedX);
+        console.log("speedY: " + speedY);
+
+/*        frequencyText.setText('Frequency: ' + frequency + " Hz");
+        speedXText.setText("Speed X: " + speedX);
+        speedYText.setText("Speed Y: " + speedY);
+        amplitudeText.setText("Amplitude: " + theta);*/
+
+        //player.setVelocityX(speedX);
+        //player.setVelocityY(-speedY);
+        //player.setAcceleration(speedX, speedY);
+        player.body.acceleration.x = speedX;
+        player.body.acceleration.y = speedY;
     }
     else {
         if (micIsActive === true) {
             micIsActive = false;
+            player.setAcceleration(0, 0);
         }
     }
 }
