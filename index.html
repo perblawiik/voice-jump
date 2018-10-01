@@ -239,7 +239,7 @@ function update ()
             player.setVelocity(speedX, speedY);
 
             // Change direction when touching the world bounds
-            if (player.body.checkWorldBounds() && !player.body.touching.down && !player.body.touching.up) {
+            if (player.body.checkWorldBounds() && (player.body.touching.left || player.body.touching.right)) {
                 playerDirectionX *= -1.0;
                 player.body.setVelocityX(playerDirectionX*300);
             }
