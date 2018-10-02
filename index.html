@@ -45,12 +45,13 @@ let scoreText;
 
 // Sound testing
 // Number of samples to store in the frequency spectrum
-const samples = 2048;
+const samples = 1024;
 // Hz per sample (first index = 20, last index = 20000)
 const sampleResolution = 19980/samples;
 // Fast Fourier Transform
 let fft = new p5.FFT(0.8, samples);
 let mic = new p5.AudioIn();
+mic.start();
 let micIsActive = false;
 // Frequency text output
 let frequencyText;
@@ -144,7 +145,7 @@ function create ()
 
     //  The frequency
     frequencyText = this.add.text(16, 64, 'Frequency: 0 Hz', { fontSize: '32px', fill: '#000' });
-    speedVectorText = this.add.text(16, 112, 'Speed Vector: (0, 0)', { fontSize: '32px', fill: '#000' });
+    speedVectorText = this.add.text(16, 112, 'Velocity Vector: (0, 0)', { fontSize: '32px', fill: '#000' });
     thetaText = this.add.text(16, 160, 'Theta: 0 degrees', { fontSize: '32px', fill: '#000' });
 
     //  Collide the player and the stars with the platforms
@@ -190,65 +191,52 @@ function update ()
     }
 
     // Microphone input test
-    if (cursors.space.isDown) {
-        if (micIsActive === false) {
-            mic.start();
-            micIsActive = true;
-        }
+    // Set which audio source to analyze
+    fft.setInput(mic);
+    // Get frequency spectrum
+    let spectrum = fft.analyze();
 
-        // Set which audio source to analyze
-        fft.setInput(mic);
-        // Get frequency spectrum
-        let spectrum = fft.analyze();
+    // Find the most dominating frequency
+    let maxAmplitude = Math.max.apply(null, spectrum);
 
-        // Find the most dominating frequency
-        let maxAmplitude = Math.max.apply(null, spectrum);
+    if (maxAmplitude > 50) {
+        // Find the index of the frequency
+        let n = spectrum.indexOf(maxAmplitude);
 
-        if (maxAmplitude > 50) {
-            // Find the index of the frequency
-            let n = spectrum.indexOf(maxAmplitude);
+        // Calculate the frequency
+        let frequency = Math.round((n + 1) * sampleResolution + 20);
 
-            // Calculate the frequency
-            let frequency = Math.round((n+1)*sampleResolution + 20);
+        // Set maximum frequency
+        let maxFreq = 2000;
+        frequency = Math.min(maxFreq, frequency);
 
-            // Set maximum frequency
-            let maxFreq = 2000;
-            frequency = Math.min(maxFreq, frequency);
+        let maxDegree = Math.PI / 2;
+        let theta = frequency * maxDegree / maxFreq;
 
-            let maxDegree = Math.PI/2;
-            let theta = frequency*maxDegree/maxFreq;
+        theta = Math.min(maxDegree, theta);
+        theta = Math.max(0, theta);
 
-            theta = Math.min(maxDegree, theta);
-            theta = Math.max(0, theta);
+        let speedX = playerDirectionX * maxAmplitude * Math.cos(theta);
+        let speedY = -1 * maxAmplitude * Math.sin(theta);
 
-            let speedX = playerDirectionX*maxAmplitude*Math.cos(theta);
-            let speedY = -1*maxAmplitude*Math.sin(theta);
+        /*
+        console.log("Frequency: " + frequency + " Hz");
+        console.log("Speed Vector: (" + speedX + ", " + speedY + ")");
+        console.log("Theta: " + theta*180/Math.PI + " degrees");
+        */
 
-            /*
-            console.log("Frequency: " + frequency + " Hz");
-            console.log("Speed Vector: (" + speedX + ", " + speedY + ")");
-            console.log("Theta: " + theta*180/Math.PI + " degrees");
-            */
+        frequencyText.setText('Frequency: ' + frequency + " Hz");
+        speedVectorText.setText("Velocity Vector: (" + Math.round(speedX) + ", " + -Math.round(speedY) + ")");
+        thetaText.setText("Theta: " + Math.round(theta * 180 / Math.PI) + " degrees");
 
-            frequencyText.setText('Frequency: ' + frequency + " Hz");
-            speedVectorText.setText("Speed Vector: (" + Math.round(speedX) + ", " + Math.round(speedY) + ")");
-            thetaText.setText("Theta: " + Math.round(theta*180/Math.PI) + " degrees");
+        //player.body.acceleration.x = speedX;
+        //player.body.acceleration.y = speedY;
+        player.setVelocity(speedX, speedY);
 
-            //player.body.acceleration.x = speedX;
-            //player.body.acceleration.y = speedY;
-            player.setVelocity(speedX, speedY);
-
-            // Change direction when touching the world bounds
-            if (player.body.checkWorldBounds() && (player.body.touching.left || player.body.touching.right)) {
-                playerDirectionX *= -1.0;
-                player.body.setVelocityX(playerDirectionX*300);
-            }
-        }
-    }
-    else {
-        if (micIsActive === true) {
-            micIsActive = false;
-            player.setAcceleration(0, 0);
+        // Change direction when touching the world bounds
+        if (player.body.checkWorldBounds() && !player.body.touching.down && !player.body.touching.up) {
+            playerDirectionX *= -1.0;
+            player.body.setVelocityX(playerDirectionX * 300);
         }
     }
 }
@@ -277,7 +265,6 @@ function collectStar (player, star)
         bomb.setCollideWorldBounds(true);
         bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
         bomb.allowGravity = false;
-
     }
 }
 
