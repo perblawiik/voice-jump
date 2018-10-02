@@ -2,7 +2,7 @@
 <html lang="en"> 
 <head>
     <meta charset="UTF-8" />
-    <title>Making your first Phaser 3 Game - Part 10</title>
+    <title>Voice Jump Alpha</title>
     <script src="./lib/phaser.js"></script>
     <script src="./lib/p5.js"></script>
     <script src="./lib/p5.sound.js"></script>
@@ -15,6 +15,8 @@
 <body>
 
 <script type="text/javascript">
+
+const worldHeight = 2400;
 
 let config = {
     type: Phaser.AUTO,
@@ -37,10 +39,14 @@ let config = {
 let player;
 let stars;
 let platforms;
+let walls;
+
 let score = 0;
 let gameOver = false;
 let scoreText;
-let backgroundImage;
+
+let groundColor;
+let skyColor;
 
 // Sound testing
 // Number of samples to store in the frequency spectrum
@@ -67,8 +73,8 @@ let game = new Phaser.Game(config);
 
 function preload ()
 {
-    this.load.image('sky', 'assets/sky.png');
-    this.load.image('ground', 'assets/platform.png');
+    this.load.image('ground', 'assets/platform3.png');
+    this.load.image('wall', 'assets/wall.png');
     this.load.image('star', 'assets/star.png');
     this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
 }
@@ -76,61 +82,69 @@ function preload ()
 function create ()
 {
     // Set outer bounds for the game map
-    this.cameras.main.setBounds(0, 0, 800, 2400);
-    this.physics.world.setBounds(0, 0, 800, 2400);
+    this.cameras.main.setBounds(0, 0, 800, worldHeight);
+    this.physics.world.setBounds(0, 0, 800, worldHeight);
 
-    //  Sky background
-    backgroundImage = this.add.image(400, 1200, 'sky');
-    backgroundImage.scaleY = 4;
+    // Background colors (will be used to interpolate from light blue to dark blue)
+    groundColor = new Phaser.Display.Color(0, 200, 255);
+    skyColor = new Phaser.Display.Color(0, 0, 55);
 
-    //  The platforms
+    // The platforms
     platforms = this.physics.add.staticGroup();
-
     //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
-    platforms.create(400, 2400, 'ground').setScale(2).refreshBody();
+    platforms.create(400, worldHeight, 'ground').setScale(2).refreshBody();
     platforms.create(600, 2200, 'ground');
     platforms.create(50, 2050, 'ground');
     platforms.create(750, 2020, 'ground');
 
-    // The player and its settings
+    // The walls
+    walls = this.physics.add.staticGroup();
+    walls.create(0, worldHeight/2, 'wall').setScale(1,6).refreshBody();
+    walls.create(800, worldHeight/2, 'wall').setScale(1,6).refreshBody();
+
+    // The player with start position and spritesheet
     player = this.physics.add.sprite(100, 2200, 'dude');
 
-    //  Player physics properties. Give the little guy a slight bounce.
+    // Player physics properties
     player.setBounce(0.2);
     player.setCollideWorldBounds(true);
     playerDirectionX = 1.0;
 
-    //  Player animations
+    // Player animations
     this.anims.create({
         key: 'face-front',
         frames: [ { key: 'dude', frame: 4 } ],
         frameRate: 20
     });
 
-    //  Some stars to collect, 12 in total, evenly spaced 70 pixels apart along the x axis
+    // Stars to collect, 12 in total
     stars = this.physics.add.group({
         key: 'star',
         repeat: 11,
-        setXY: { x: 12, y: 1800, stepX: 70 }
+        setXY: { x: 50, y: 1800, stepX: 60 }
     });
 
     stars.children.iterate(function (child) {
 
-        //  Give each star a slightly different bounce
+        // Give each star a slightly different bounce
         child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.4));
     });
 
-    //  The score
+    /*
+    // The score
     scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
 
-    //  The frequency
+    // The frequency
     frequencyText = this.add.text(16, 64, 'Frequency: 0 Hz', { fontSize: '32px', fill: '#000' });
     speedVectorText = this.add.text(16, 112, 'Velocity Vector: (0, 0)', { fontSize: '32px', fill: '#000' });
     thetaText = this.add.text(16, 160, 'Theta: 0 degrees', { fontSize: '32px', fill: '#000' });
+    */
 
     //  Collide the player and the stars with the platforms
     this.physics.add.collider(player, platforms);
     this.physics.add.collider(stars, platforms);
+    //  Changes player direction when player collide with walls
+    this.physics.add.collider(player, walls, changePlayerDirection, null, this);
 
     //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
     this.physics.add.overlap(player, stars, collectStar, null, this);
@@ -177,39 +191,47 @@ function update ()
         let speedY = -1 * maxAmplitude * Math.sin(theta);
 
         player.setVelocity(speedX, speedY);
+        player.rotation = playerDirectionX*Math.PI/2 - playerDirectionX*theta;
 
-        // Change direction when touching the world bounds
-        if (player.body.checkWorldBounds() && !player.body.touching.down && !player.body.touching.up) {
-            playerDirectionX *= -1.0;
-            player.body.setVelocityX(playerDirectionX * 300);
-        }
-
+        /*
         frequencyText.setText('Frequency: ' + frequency + " Hz");
         speedVectorText.setText("Velocity Vector: (" + Math.round(speedX) + ", " + -Math.round(speedY) + ")");
         thetaText.setText("Theta: " + Math.round(theta * 180 / Math.PI) + " degrees");
+        */
     }
     else {
         // If no audio is detected deaccelerate player
         player.body.acceleration.x = -player.body.velocity.x;
     }
+
+    // Interpolate the background color
+    let hexColor = Phaser.Display.Color.Interpolate.ColorWithColor(skyColor, groundColor, worldHeight, player.y);
+    this.cameras.main.setBackgroundColor(hexColor);
 }
 
 function collectStar (player, star)
 {
     star.disableBody(true, true);
 
-    //  Add and update the score
+    // Add and update the score
     score += 10;
-    scoreText.setText('Score: ' + score);
+    //scoreText.setText('Score: ' + score);
 
     if (stars.countActive(true) === 0)
     {
-        //  A new batch of stars to collect
+        // A new batch of stars to collect
         stars.children.iterate(function (child) {
 
             child.enableBody(true, child.x, 0, true, true);
         });
     }
+}
+
+function changePlayerDirection (player) {
+
+    playerDirectionX *= -1;
+    player.body.setVelocityX(playerDirectionX * 300);
+    player.rotation = -player.rotation;
 }
 
 
