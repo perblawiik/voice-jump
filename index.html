@@ -40,6 +40,7 @@ let player;
 let stars;
 let platforms;
 let walls;
+let emitter;
 
 let score = 0;
 let gameOver = false;
@@ -73,6 +74,7 @@ function preload ()
     this.load.image('star', 'assets/star.png');
     this.load.spritesheet('player', 'assets/astronaut_sheet.png', { frameWidth: 36, frameHeight: 50 });
     this.load.spritesheet('player_sprite', 'assets/face_sheet.png', {frameWidth: 64, frameHeight: 64});
+    this.load.image('soundwave', 'assets/soundwave.png');
 }
 
 function create ()
@@ -118,6 +120,8 @@ function create ()
         frames: [ { key: 'player_sprite', frame: 1 } ],
         frameRate: 20
     });
+
+    //Particle effects from player
 
 
     // Stars to collect, 12 in total
