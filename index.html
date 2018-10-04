@@ -72,6 +72,7 @@ function preload ()
     this.load.image('wall', 'assets/wall.png');
     this.load.image('star', 'assets/star.png');
     this.load.spritesheet('player', 'assets/astronaut_sheet.png', { frameWidth: 36, frameHeight: 50 });
+    this.load.spritesheet('player_sprite', 'assets/face_sheet.png', {frameWidth: 64, frameHeight: 64});
 }
 
 function create ()
@@ -108,13 +109,13 @@ function create ()
 
     // Player animations
     this.anims.create({
-        key: 'face-right',
-        frames: [ { key: 'player', frame: 2 } ],
+        key: 'open',
+        frames: [ { key: 'player_sprite', frame: 2 } ],
         frameRate: 20
     });
     this.anims.create({
-        key: 'face-left',
-        frames: [ { key: 'player', frame: 1 } ],
+        key: 'closed',
+        frames: [ { key: 'player_sprite', frame: 1 } ],
         frameRate: 20
     });
 
@@ -157,12 +158,14 @@ function update ()
         return;
     }
 
+    /*
     if (playerDirectionX > 0) {
-        player.anims.play('face-right');
+        player.anims.play('open');
     }
     else {
-        player.anims.play('face-left');
+        player.anims.play('closed');
     }
+    */
 
     // Set which audio source to analyze
     fft.setInput(mic);
@@ -173,6 +176,9 @@ function update ()
     let maxAmplitude = Math.max.apply(null, spectrum);
 
     if (maxAmplitude > 50) {
+        //Scream Animation
+        player.anims.play('open');
+
         // Find the index of the frequency
         let n = spectrum.indexOf(maxAmplitude);
 
@@ -209,6 +215,7 @@ function update ()
     else {
         // If no audio is detected deaccelerate player
         player.body.acceleration.x = -player.body.velocity.x;
+        player.anims.play('closed');
     }
 
     // Interpolate the background color
