@@ -61,11 +61,6 @@ let mic = new p5.AudioIn();
 // Activate microphone input
 mic.start();
 
-// Text outputs
-let frequencyText;
-let speedVectorText;
-let thetaText;
-
 // Player direction
 let playerDirectionX;
 
@@ -140,11 +135,6 @@ function create ()
     /*
     // The score
     scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
-
-    // The frequency
-    frequencyText = this.add.text(16, 64, 'Frequency: 0 Hz', { fontSize: '32px', fill: '#000' });
-    speedVectorText = this.add.text(16, 112, 'Velocity Vector: (0, 0)', { fontSize: '32px', fill: '#000' });
-    thetaText = this.add.text(16, 160, 'Theta: 0 degrees', { fontSize: '32px', fill: '#000' });
     */
 
     //  Collide the player and the stars with the platforms
@@ -173,7 +163,6 @@ function update ()
     else {
         player.anims.play('face-left');
     }
-
 
     // Set which audio source to analyze
     fft.setInput(mic);
@@ -204,14 +193,18 @@ function update ()
         let speedY = -1 * maxAmplitude * Math.sin(theta);
 
         player.setVelocity(speedX, speedY);
-        // Add rotation to the player sprite
-        player.rotation = playerDirectionX*Math.PI/2 - playerDirectionX*theta;
 
-        /*
-        frequencyText.setText('Frequency: ' + frequency + " Hz");
-        speedVectorText.setText("Velocity Vector: (" + Math.round(speedX) + ", " + -Math.round(speedY) + ")");
-        thetaText.setText("Theta: " + Math.round(theta * 180 / Math.PI) + " degrees");
-        */
+        // Add rotation to the player sprite
+        let playerRotation = playerDirectionX*Math.PI/2 - playerDirectionX*theta;
+        let threshold = Math.PI/180;
+        if (Math.abs(playerRotation - player.rotation) > threshold) {
+            if (playerRotation > player.rotation) {
+                player.rotation = player.rotation + threshold;
+            }
+            else {
+                player.rotation = player.rotation - threshold;
+            }
+        }
     }
     else {
         // If no audio is detected deaccelerate player
