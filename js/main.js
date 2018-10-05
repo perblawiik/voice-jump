@@ -1,8 +1,13 @@
 
+// Load scenes
+let scenes = [
+    new StartMenu("Start Menu"),
+    new Level01("Level 01")
+];
 
-
+// Game configurations
 let config = {
-    type: Phaser.WEBGL,
+    type: Phaser.AUTO,
     width: 800,
     height: 600,
     physics: {
@@ -12,9 +17,8 @@ let config = {
             debug: false
         }
     },
-    scene: loadScene01()
+    scene: scenes
 };
 
-
+// Instantiate the game
 let game = new Phaser.Game(config);
-
