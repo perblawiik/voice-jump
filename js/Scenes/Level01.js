@@ -33,11 +33,11 @@ let Level01 = class extends Phaser.Scene {
 
     preload () {
 
-        this.load.image('ground', '../assets/platform3.png');
-        this.load.image('wall', '../assets/wall.png');
-        this.load.image('star', '../assets/star.png');
-        this.load.spritesheet('player_sprite', '../assets/face_sheet.png', {frameWidth: 64, frameHeight: 64});
-        this.load.image('soundwave', '../assets/soundwave.png');
+        this.load.image('ground', '../../assets/platform3.png');
+        this.load.image('wall', '../../assets/wall.png');
+        this.load.image('star', '../../assets/star.png');
+        this.load.spritesheet('player_sprite', '../../assets/face_sheet.png', {frameWidth: 64, frameHeight: 64});
+        this.load.image('soundwave', '../../assets/soundwave.png');
     }
 
     create () {
