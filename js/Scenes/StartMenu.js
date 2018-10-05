@@ -3,7 +3,7 @@ let StartMenu = class extends Phaser.Scene {
 
     constructor(sceneName) {
         super(sceneName);
-        console.log("Start menu loaded!");
+        console.log("Scene: <" + sceneName + "> loaded!");
     }
 
     init() {
@@ -15,16 +15,22 @@ let StartMenu = class extends Phaser.Scene {
     }
 
     create() {
+        // Resizeable window
+        window.addEventListener('resize', this.resize);
+        this.resize();
 
-        this.cameras.main.setBackgroundColor("#404040");
+        this.cameras.main.setBackgroundColor("#00C8FF");
+
         let buttonStyle = {
-            fill: '#BE8A0B',
+            fill: '#EEAD0E',
             fontSize: '52px',
             fontStyle: 'bold',
             boundsAlignH: 'center',
-            boundsAlignV: 'center'
+            boundsAlignV: 'center',
         };
         this.startButton = this.add.text(400, 300, 'Play', buttonStyle )
+            .setPadding(8, 8, 8, 8)
+            .setShadow(2,2,'#000', 2, false, true)
             .setOrigin(0.5, 0.5)
             .setInteractive({ useHandCursor: true })
             .on('pointerdown', () => this.buttonActiveState() )
@@ -41,11 +47,11 @@ let StartMenu = class extends Phaser.Scene {
     }
 
     buttonHoverState() {
-        this.startButton.setStyle({fill: '#EEAD0E', fontSize: '52px'});
+        this.startButton.setStyle({fill: '#f8de9e', fontSize: '52px'});
     }
 
     buttonIdleState() {
-        this.startButton.setStyle({fill: '#BE8A0B', fontSize: '52px'});
+        this.startButton.setStyle({fill: '#EEAD0E', fontSize: '52px'});
     }
 
     buttonActiveState() {
@@ -54,5 +60,18 @@ let StartMenu = class extends Phaser.Scene {
 
     startGame() {
         this.scene.manager.switch('Start Menu', 'Level 01');
+    }
+
+    resize() {
+        let canvas = game.canvas, width = window.innerWidth, height = window.innerHeight;
+        let wratio = width / height, ratio = canvas.width / canvas.height;
+
+        if (wratio < ratio) {
+            canvas.style.width = width + "px";
+            canvas.style.height = (width / ratio) + "px";
+        } else {
+            canvas.style.width = (height * ratio) + "px";
+            canvas.style.height = height + "px";
+        }
     }
 };

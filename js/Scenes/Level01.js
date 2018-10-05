@@ -3,7 +3,7 @@ let Level01 = class extends Phaser.Scene {
 
     constructor (sceneName) {
         super(sceneName);
-        console.log("Level 01 loaded!");
+        console.log("Scene: <" + sceneName + "> loaded!");
     }
 
     // Initiate custom variables that is not a part of Phaser API in this function
