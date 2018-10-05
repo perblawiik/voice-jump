@@ -1,12 +1,13 @@
 
-function loadScene01 () {
+let Level01 = class extends Phaser.Scene {
 
-    // create a new scene named "Game"
-    let scene = new Phaser.Scene('Game');
+    constructor (sceneName) {
+        super(sceneName);
+        console.log("Level 01 loaded!");
+    }
 
     // Initiate custom variables that is not a part of Phaser API in this function
-    scene.init = function () {
-
+    init () {
         /** Microphone stuff **/
         // Number of samples to store in the frequency spectrum
         this.samples = 1024;
@@ -24,30 +25,33 @@ function loadScene01 () {
         this.worldHeight = 2400;
         this.worldWidth = 800;
 
-        // Background colors (will be used to interpolate from light blue to dark blue)
-        this.groundColor = new Phaser.Display.Color(0, 200, 255);
-        this.skyColor = new Phaser.Display.Color(0, 0, 55);
-
         // Game stuff
         this.score = 0;
         this.gameOver = false;
         this.playerDirectionX = 1;
-    };
+    }
 
-    scene.preload = function() {
+    preload () {
 
-        this.load.image('ground', 'assets/platform3.png');
-        this.load.image('wall', 'assets/wall.png');
-        this.load.image('star', 'assets/star.png');
-        this.load.spritesheet('player_sprite', 'assets/face_sheet.png', {frameWidth: 64, frameHeight: 64});
-        this.load.image('soundwave', 'assets/soundwave.png');
-    };
+        this.load.image('ground', '../assets/platform3.png');
+        this.load.image('wall', '../assets/wall.png');
+        this.load.image('star', '../assets/star.png');
+        this.load.spritesheet('player_sprite', '../assets/face_sheet.png', {frameWidth: 64, frameHeight: 64});
+        this.load.image('soundwave', '../assets/soundwave.png');
+    }
 
-    scene.create = function () {
+    create () {
+        // Resizeable window
+        window.addEventListener('resize', this.resize);
+        this.resize();
 
         // Set outer bounds for the game map
         this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
         this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
+
+        // Background colors (will be used to interpolate from light blue to dark blue)
+        this.groundColor = new Phaser.Display.Color(0, 200, 255);
+        this.skyColor = new Phaser.Display.Color(0, 0, 55);
 
         // The platforms
         this.platforms = this.physics.add.staticGroup();
@@ -106,14 +110,13 @@ function loadScene01 () {
         this.physics.add.collider(this.player, this.platforms);
         this.physics.add.collider(this.stars, this.platforms);
         //  Changes player direction when player collide with walls
-        this.physics.add.collider(this.player, this.walls, changePlayerDirection, null, this);
+        this.physics.add.collider(this.player, this.walls, this.changePlayerDirection, null, this);
 
         //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
-        this.physics.add.overlap(this.player, this.stars, collectStar, null, this);
-    };
+        this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
+    }
 
-    scene.update = function () {
-
+    update () {
         // Break game loop
         if (this.gameOver) {
             return;
@@ -149,7 +152,7 @@ function loadScene01 () {
             theta = Math.max(0, theta);
 
             let speedX = this.playerDirectionX * maxAmplitude * Math.cos(theta);
-            let speedY = -1 * maxAmplitude * Math.sin(theta);
+            let speedY = (-1) * maxAmplitude * Math.sin(theta);
 
             this.player.setVelocity(speedX, speedY);
 
@@ -174,10 +177,10 @@ function loadScene01 () {
         // Interpolate the background color
         let hexColor = Phaser.Display.Color.Interpolate.ColorWithColor(this.skyColor, this.groundColor, this.worldHeight, this.player.y);
         this.cameras.main.setBackgroundColor(hexColor);
-    };
+    }
 
-    function collectStar (player, star)
-    {
+    collectStar (player, star) {
+
         star.disableBody(true, true);
 
         // Add and update the score
@@ -194,13 +197,24 @@ function loadScene01 () {
         }
     }
 
-    function changePlayerDirection (player) {
+    changePlayerDirection (player) {
 
         this.playerDirectionX *= -1;
         this.player.body.setVelocityX(this.playerDirectionX * 300);
         this.player.rotation = -this.player.rotation;
     }
 
-    return scene;
-}
+    resize() {
+        let canvas = game.canvas, width = window.innerWidth, height = window.innerHeight;
+        let wratio = width / height, ratio = canvas.width / canvas.height;
+
+        if (wratio < ratio) {
+            canvas.style.width = width + "px";
+            canvas.style.height = (width / ratio) + "px";
+        } else {
+            canvas.style.width = (height * ratio) + "px";
+            canvas.style.height = height + "px";
+        }
+    }
+};
 
