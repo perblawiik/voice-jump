@@ -146,7 +146,7 @@ let Level01 = class extends Phaser.Scene {
             this.frequency = Math.min(maxFreq, this.frequency);
 
             // Update frequency in HUD
-            this.scene.manager.getScene('HUD').setFrequencyText(this.frequency);
+            this.inGameHUD.setFrequencyText(this.frequency);
 
             let maxAngle = Math.PI / 2;
             let theta = this.frequency * maxAngle / maxFreq;
