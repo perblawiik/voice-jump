@@ -2,7 +2,8 @@
 // Load scenes
 let scenes = [
     new StartMenu("Start Menu"),
-    new Level01("Level 01")
+    new Level01("Level 01"),
+    new HeadupDisplay("HUD")
 ];
 
 // Game configurations

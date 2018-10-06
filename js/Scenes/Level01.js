@@ -16,6 +16,7 @@ let Level01 = class extends Phaser.Scene {
         // Fast Fourier Transform
         this.fft = new p5.FFT(0.8, this.samples);
         this.spectrum = [];
+        this.frequency = 0;
         // Microphone input
         this.microphone = new p5.AudioIn();
         // Activate microphone input
@@ -41,6 +42,10 @@ let Level01 = class extends Phaser.Scene {
     }
 
     create () {
+        // Activate HUD
+        this.scene.manager.start("HUD");
+        this.inGameHUD = this.scene.manager.getScene("HUD");
+
         // Resizeable window
         window.addEventListener('resize', this.resize);
         this.resize();
@@ -103,9 +108,6 @@ let Level01 = class extends Phaser.Scene {
             child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.4));
         });
 
-        // The score
-        this.scoreText = this.add.text(16, 1800, 'Score: 0', { fontSize: '32px', fill: '#000' });
-
         //  Collide the player and the stars with the platforms
         this.physics.add.collider(this.player, this.platforms);
         this.physics.add.collider(this.stars, this.platforms);
@@ -122,8 +124,6 @@ let Level01 = class extends Phaser.Scene {
             return;
         }
 
-        this.scoreText.y = this.cameras.main.worldView.y;
-
         // Set which audio source to analyze
         this.fft.setInput(this.microphone);
         // Get frequency spectrum
@@ -139,14 +139,17 @@ let Level01 = class extends Phaser.Scene {
             let n = this.spectrum.indexOf(maxAmplitude);
 
             // Calculate the frequency
-            let frequency = Math.round((n + 1) * this.sampleResolution + 20);
+            this.frequency = Math.round((n + 1) * this.sampleResolution + 20);
 
             // Set maximum frequency
             let maxFreq = 2000;
-            frequency = Math.min(maxFreq, frequency);
+            this.frequency = Math.min(maxFreq, this.frequency);
+
+            // Update frequency in HUD
+            this.scene.manager.getScene('HUD').setFrequencyText(this.frequency);
 
             let maxAngle = Math.PI / 2;
-            let theta = frequency * maxAngle / maxFreq;
+            let theta = this.frequency * maxAngle / maxFreq;
 
             theta = Math.min(maxAngle, theta);
             theta = Math.max(0, theta);
@@ -169,9 +172,17 @@ let Level01 = class extends Phaser.Scene {
             }
         }
         else {
-            // If no audio is detected deaccelerate player
-            this.player.body.acceleration.x = -this.player.body.velocity.x;
+            // Play closed mouth animation for player
             this.player.anims.play('closed');
+
+            // Deaccelerate the player
+            this.player.body.acceleration.x = -this.player.body.velocity.x;
+
+            // Update frequency in HUD (decrease frequency to zero)
+            if (this.frequency > 0) {
+                this.frequency = this.frequency - 20;
+                this.inGameHUD.setFrequencyText(Math.max(0, this.frequency));
+            }
         }
 
         // Interpolate the background color
@@ -185,7 +196,8 @@ let Level01 = class extends Phaser.Scene {
 
         // Add and update the score
         this.score += 10;
-        this.scoreText.setText('Score: ' + this.score);
+        // Update score in HUD
+        this.inGameHUD.setScoreText(this.score);
 
         if (this.stars.countActive(true) === 0)
         {
