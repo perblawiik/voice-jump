@@ -15,7 +15,7 @@ let HeadupDisplay = class extends Phaser.Scene {
     preload() {
 
         this.load.image('freq_bar_outer', '../../assets/frequency_bar_outer1.png');
-        this.load.image('freq_bar_inner', '../../assets/frequency_bar_inner_20_parts.png');
+        this.load.image('freq_bar_inner', '../../assets/frequency_bar_inner_20_parts_gradient_01.png');
     }
 
     create() {
