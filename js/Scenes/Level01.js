@@ -30,6 +30,9 @@ let Level01 = class extends Phaser.Scene {
         this.score = 0;
         this.gameOver = false;
         this.playerDirectionX = 1;
+
+        // Activate HUD
+        this.scene.manager.start("HUD");
     }
 
     preload () {
@@ -42,8 +45,8 @@ let Level01 = class extends Phaser.Scene {
     }
 
     create () {
-        // Activate HUD
-        this.scene.manager.start("HUD");
+
+        // Instance for feeding information to the Head-up Display
         this.inGameHUD = this.scene.manager.getScene("HUD");
 
         // Resizeable window
@@ -146,7 +149,7 @@ let Level01 = class extends Phaser.Scene {
             this.frequency = Math.min(maxFreq, this.frequency);
 
             // Update frequency in HUD
-            this.inGameHUD.setFrequencyText(this.frequency);
+            this.inGameHUD.setFrequency(this.frequency);
 
             let maxAngle = Math.PI / 2;
             let theta = this.frequency * maxAngle / maxFreq;
@@ -181,7 +184,7 @@ let Level01 = class extends Phaser.Scene {
             // Update frequency in HUD (decrease frequency to zero)
             if (this.frequency > 0) {
                 this.frequency = this.frequency - 20;
-                this.inGameHUD.setFrequencyText(Math.max(0, this.frequency));
+                this.inGameHUD.setFrequency(Math.max(0, this.frequency));
             }
         }
 
