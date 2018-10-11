@@ -110,7 +110,22 @@ let Level01 = class extends Phaser.Scene {
         });
 
         //Particle effects from player
+        this.soundwave_particles = this.add.particles('soundwave');
 
+        this.soundwave_particles.createEmitter({
+            x: this.player.x,
+            y: this.player.y,
+            lifespan:1000,
+            speed: 0,
+            angle: 180,
+            scale: {start:0.01, end: 0.50},
+            alpha: {start:1.0, end: 0.0},
+            quantity: 1, 
+            on: false
+
+        });
+        this.TICKSPERWAVE = 5;
+        this.current_count = 0;
 
         // Stars to collect, 12 in total
         //this.stars = this.physics.add.group({
@@ -195,6 +210,20 @@ let Level01 = class extends Phaser.Scene {
                     this.player.rotation = this.player.rotation - threshold;
                 }
             }
+
+            //Particle update
+            //this.soundwave_particles.setSpeedX(40*Math.cos(theta + Math.PI));
+            //this.soundwave_particles.setSpeedY(40*Math.sin(theta + Math.PI));
+
+            //this.soundwave_particles.setAngle(this.player.angle);
+            //this.soundwave_particles.setPosition(this.player.x, this.player.y);
+            if(this.current_count > (this.TICKSPERWAVE))
+            {
+                this.soundwave_particles.emitParticle(1, this.player.x, this.player.y);
+                this.current_count = 0;
+            }
+            this.current_count += Math.sqrt(speedY*speedY + speedX*speedX)/500;    
+            
         }
         else {
             // Play closed mouth animation for player
