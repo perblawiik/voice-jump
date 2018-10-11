@@ -24,7 +24,7 @@ let Level01 = class extends Phaser.Scene {
 
         // Game world dimensions
         this.worldHeight = 2400;
-        this.worldWidth = 800;
+        this.worldWidth = 864;
 
         // Game stuff
         this.score = 0;
@@ -36,7 +36,8 @@ let Level01 = class extends Phaser.Scene {
     }
 
     preload () {
-
+        this.load.image('tiles', '../../assets/block.png');
+        this.load.tilemapTiledJSON('map', '../../assets/level1_ver2.json');
         this.load.image('ground', '../../assets/platform3.png');
         this.load.image('wall', '../../assets/wall.png');
         this.load.image('star', '../../assets/star.png');
@@ -46,38 +47,51 @@ let Level01 = class extends Phaser.Scene {
 
     create () {
 
+        const map = this.make.tilemap({key: 'map'});
+
+        const tileset = map.addTilesetImage('block', 'tiles');
+
+        const tileset2 = map.addTilesetImage('block', 'tiles');
+
+        const niceBlocks = map.createStaticLayer('Tile Layer 1', tileset, 0, 0);
+
+        niceBlocks.setCollisionByProperty({ collides: true });
+
+        //this.game.stage.backgroundColor(#00C8FF);
+
+
         // Instance for feeding information to the Head-up Display
         this.inGameHUD = this.scene.manager.getScene("HUD");
 
         // Resizeable window
-        window.addEventListener('resize', this.resize);
-        this.resize();
+        //window.addEventListener('resize', this.resize);
+        //this.resize();
 
         // Set outer bounds for the game map
         this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
         this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
 
         // Background colors (will be used to interpolate from light blue to dark blue)
-        this.groundColor = new Phaser.Display.Color(0, 200, 255);
-        this.skyColor = new Phaser.Display.Color(0, 0, 55);
+        //this.groundColor = new Phaser.Display.Color(0, 200, 255);
+        //this.skyColor = new Phaser.Display.Color(0, 0, 55);
 
         // The platforms
-        this.platforms = this.physics.add.staticGroup();
+        //this.platforms = this.physics.add.staticGroup();
         //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
-        this.platforms.create(400, this.worldHeight, 'ground').setScale(2).refreshBody();
-        this.platforms.create(600, 2200, 'ground');
-        this.platforms.create(50, 2050, 'ground');
-        this.platforms.create(750, 2020, 'ground');
+        //this.platforms.create(400, this.worldHeight, 'ground').setScale(2).refreshBody();
+        //this.platforms.create(600, 2200, 'ground');
+        //this.platforms.create(50, 2050, 'ground');
+        //this.platforms.create(750, 2020, 'ground');
 
         // The walls
-        this.walls = this.physics.add.staticGroup();
-        this.walls.create(0, this.worldHeight/2, 'wall').setScale(1,6).refreshBody();
-        this.walls.create(800, this.worldHeight/2, 'wall').setScale(1,6).refreshBody();
+        //this.walls = this.physics.add.staticGroup();
+        //this.walls.create(0, this.worldHeight/2, 'wall').setScale(1,6).refreshBody();
+        //this.walls.create(800, this.worldHeight/2, 'wall').setScale(1,6).refreshBody();
 
         // The player with start position and spritesheet
-        this.player = this.physics.add.sprite(100, 2200, 'player_sprite');
-        this.player.setBounce(0.2);
-        this.player.setCollideWorldBounds(true);
+        this.player = this.physics.add.sprite(100, 2100, 'player_sprite');
+        //this.player.setBounce(0.2);
+        //this.player.setCollideWorldBounds(true);
 
         // Set camera to follow player
         this.cameras.main.startFollow(this.player, true, 0.02, 0.01);
@@ -99,26 +113,34 @@ let Level01 = class extends Phaser.Scene {
 
 
         // Stars to collect, 12 in total
-        this.stars = this.physics.add.group({
-            key: 'star',
-            repeat: 11,
-            setXY: { x: 50, y: 1800, stepX: 60 }
-        });
+        //this.stars = this.physics.add.group({
+        //    key: 'star',
+        //    repeat: 11,
+        //    setXY: { x: 50, y: 1800, stepX: 60 }
+        //});
 
-        this.stars.children.iterate(function (child) {
+        //this.stars.children.iterate(function (child) {
 
             // Give each star a slightly different bounce
-            child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.4));
-        });
+        //    child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.4));
+        //});
 
         //  Collide the player and the stars with the platforms
-        this.physics.add.collider(this.player, this.platforms);
-        this.physics.add.collider(this.stars, this.platforms);
+        this.physics.add.collider(this.player, niceBlocks);
+        //this.physics.add.collider(this.stars, this.platforms);
         //  Changes player direction when player collide with walls
-        this.physics.add.collider(this.player, this.walls, this.changePlayerDirection, null, this);
+        //this.physics.add.collider(this.player, this.walls, this.changePlayerDirection, null, this);
 
         //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
-        this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
+        //this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
+
+
+        //const debugGraphics = this.add.graphics().setAlpha(0.75);
+        //niceBlocks.renderDebug(debugGraphics, {
+            //tileColor: null, // Color of non-colliding tiles
+            //collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
+            //faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
+        //});
     }
 
     update () {
@@ -188,35 +210,26 @@ let Level01 = class extends Phaser.Scene {
             }
         }
 
-        // Interpolate the background color
-        let hexColor = Phaser.Display.Color.Interpolate.ColorWithColor(this.skyColor, this.groundColor, this.worldHeight, this.player.y);
-        this.cameras.main.setBackgroundColor(hexColor);
-    }
-
-    collectStar (player, star) {
-
-        star.disableBody(true, true);
-
-        // Add and update the score
-        this.score += 10;
-        // Update score in HUD
-        this.inGameHUD.setScoreText(this.score);
-
-        if (this.stars.countActive(true) === 0)
+        if(this.player.body.onWall())
         {
-            // A new batch of stars to collect
-            this.stars.children.iterate(function (child) {
-
-                child.enableBody(true, child.x, 0, true, true);
-            });
+            this.playerDirectionX *= -1;
+            this.player.body.setVelocityX(this.playerDirectionX * 300);
+            this.player.rotation = -this.player.rotation;
         }
+
+        // Interpolate the background color
+        //let hexColor = Phaser.Display.Color.Interpolate.ColorWithColor(this.skyColor, this.groundColor, this.worldHeight, this.player.y);
+        //this.cameras.main.setBackgroundColor(hexColor);
     }
+
+
 
     changePlayerDirection (player) {
 
-        this.playerDirectionX *= -1;
-        this.player.body.setVelocityX(this.playerDirectionX * 300);
-        this.player.rotation = -this.player.rotation;
+            this.playerDirectionX *= -1;
+            this.player.body.setVelocityX(this.playerDirectionX * 300);
+            this.player.rotation = -this.player.rotation;
+
     }
 
     resize() {
