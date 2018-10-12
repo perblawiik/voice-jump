@@ -38,9 +38,6 @@ let Level01 = class extends Phaser.Scene {
     preload () {
         this.load.image('tiles', '../../assets/block.png');
         this.load.tilemapTiledJSON('map', '../../assets/level1_ver2.json');
-        this.load.image('ground', '../../assets/platform3.png');
-        this.load.image('wall', '../../assets/wall.png');
-        this.load.image('star', '../../assets/star.png');
         this.load.spritesheet('player_sprite', '../../assets/face_sheet.png', {frameWidth: 64, frameHeight: 64});
         this.load.image('soundwave', '../../assets/soundwave.png');
     }
@@ -48,50 +45,20 @@ let Level01 = class extends Phaser.Scene {
     create () {
 
         const map = this.make.tilemap({key: 'map'});
-
         const tileset = map.addTilesetImage('block', 'tiles');
 
-        const tileset2 = map.addTilesetImage('block', 'tiles');
-
         const niceBlocks = map.createStaticLayer('Tile Layer 1', tileset, 0, 0);
-
         niceBlocks.setCollisionByProperty({ collides: true });
-
-        //this.game.stage.backgroundColor(#00C8FF);
-
 
         // Instance for feeding information to the Head-up Display
         this.inGameHUD = this.scene.manager.getScene("HUD");
-
-        // Resizeable window
-        //window.addEventListener('resize', this.resize);
-        //this.resize();
 
         // Set outer bounds for the game map
         this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
         this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
 
-        // Background colors (will be used to interpolate from light blue to dark blue)
-        //this.groundColor = new Phaser.Display.Color(0, 200, 255);
-        //this.skyColor = new Phaser.Display.Color(0, 0, 55);
-
-        // The platforms
-        //this.platforms = this.physics.add.staticGroup();
-        //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
-        //this.platforms.create(400, this.worldHeight, 'ground').setScale(2).refreshBody();
-        //this.platforms.create(600, 2200, 'ground');
-        //this.platforms.create(50, 2050, 'ground');
-        //this.platforms.create(750, 2020, 'ground');
-
-        // The walls
-        //this.walls = this.physics.add.staticGroup();
-        //this.walls.create(0, this.worldHeight/2, 'wall').setScale(1,6).refreshBody();
-        //this.walls.create(800, this.worldHeight/2, 'wall').setScale(1,6).refreshBody();
-
         // The player with start position and spritesheet
         this.player = this.physics.add.sprite(100, 2100, 'player_sprite');
-        //this.player.setBounce(0.2);
-        //this.player.setCollideWorldBounds(true);
 
         // Set camera to follow player
         this.cameras.main.startFollow(this.player, true, 0.02, 0.01);
@@ -127,28 +94,11 @@ let Level01 = class extends Phaser.Scene {
         this.TICKSPERWAVE = 5;
         this.current_count = 0;
 
-        // Stars to collect, 12 in total
-        //this.stars = this.physics.add.group({
-        //    key: 'star',
-        //    repeat: 11,
-        //    setXY: { x: 50, y: 1800, stepX: 60 }
-        //});
-
-        //this.stars.children.iterate(function (child) {
-
-            // Give each star a slightly different bounce
-        //    child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.4));
-        //});
-
         //  Collide the player and the stars with the platforms
         this.physics.add.collider(this.player, niceBlocks);
-        //this.physics.add.collider(this.stars, this.platforms);
-        //  Changes player direction when player collide with walls
-        //this.physics.add.collider(this.player, this.walls, this.changePlayerDirection, null, this);
 
         //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
         //this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
-
 
         //const debugGraphics = this.add.graphics().setAlpha(0.75);
         //niceBlocks.renderDebug(debugGraphics, {
@@ -214,14 +164,9 @@ let Level01 = class extends Phaser.Scene {
             }
 
             //Particle update
-            //this.soundwave_particles.setSpeedX(40*Math.cos(theta + Math.PI));
-            //this.soundwave_particles.setSpeedY(40*Math.sin(theta + Math.PI));
-
-            //this.soundwave_particles.setAngle(this.player.angle);
-            //this.soundwave_particles.setPosition(this.player.x, this.player.y);
             if(this.current_count > (this.TICKSPERWAVE))
             {
-                this.soundwave_particles.emitParticle(1, this.player.x, this.player.y+10);
+                this.soundwave_particles.emitParticle(1, this.player.x, this.player.y);
                 this.current_count = 0;
             }
             this.current_count += Math.sqrt(speedY*speedY + speedX*speedX)/500;    
@@ -241,38 +186,12 @@ let Level01 = class extends Phaser.Scene {
             }
         }
 
+        // Change player direction when hitting walls
         if(this.player.body.onWall())
         {
             this.playerDirectionX *= -1;
             this.player.body.setVelocityX(this.playerDirectionX * 300);
             this.player.rotation = -this.player.rotation;
-        }
-
-        // Interpolate the background color
-        //let hexColor = Phaser.Display.Color.Interpolate.ColorWithColor(this.skyColor, this.groundColor, this.worldHeight, this.player.y);
-        //this.cameras.main.setBackgroundColor(hexColor);
-    }
-
-
-
-    changePlayerDirection (player) {
-
-            this.playerDirectionX *= -1;
-            this.player.body.setVelocityX(this.playerDirectionX * 300);
-            this.player.rotation = -this.player.rotation;
-
-    }
-
-    resize() {
-        let canvas = game.canvas, width = window.innerWidth, height = window.innerHeight;
-        let wratio = width / height, ratio = canvas.width / canvas.height;
-
-        if (wratio < ratio) {
-            canvas.style.width = width + "px";
-            canvas.style.height = (width / ratio) + "px";
-        } else {
-            canvas.style.width = (height * ratio) + "px";
-            canvas.style.height = height + "px";
         }
     }
 };
