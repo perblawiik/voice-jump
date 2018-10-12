@@ -16,6 +16,7 @@ let HeadupDisplay = class extends Phaser.Scene {
 
         this.load.image('freq_bar_outer', '../../assets/frequency_bar_outer1.png');
         this.load.image('freq_bar_inner', '../../assets/frequency_bar_inner_20_parts_gradient_01.png');
+        this.load.image('score_icon', '../../assets/ice_cream_icon.png');
     }
 
     create() {
@@ -29,6 +30,8 @@ let HeadupDisplay = class extends Phaser.Scene {
         this.add.image(702,23, 'freq_bar_outer').setScale(0.5);
         this.frequencyBarInner = this.add.image(585,23, 'freq_bar_inner').setScale(0.5).setOrigin(0, 0.5);
 
+        this.add.image(38, 24, 'score_icon');
+
         // The geometry for the mask
         this.frequencyMaskGeometry = new Phaser.GameObjects.Graphics(this);
         this.frequencyMaskGeometry.fillRect(585, 0, this.innerBarLenght, 50);
@@ -37,7 +40,7 @@ let HeadupDisplay = class extends Phaser.Scene {
         // Hide the inner bar
         this.frequencyMaskGeometry.x = -this.innerBarLenght;
 
-        this.scoreText = this.add.text(38, 6, 'Score: 0', textStyle);
+        this.scoreText = this.add.text(56, 10, '0', textStyle);
         this.add.text(382, 6, 'Frequency:', textStyle);
     }
 
@@ -47,7 +50,7 @@ let HeadupDisplay = class extends Phaser.Scene {
 
     setScoreText (score) {
 
-        this.scoreText.setText('Score: ' + score);
+        this.scoreText.setText(score);
     }
 
     setFrequency (freq) {

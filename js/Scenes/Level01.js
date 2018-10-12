@@ -40,6 +40,7 @@ let Level01 = class extends Phaser.Scene {
         this.load.tilemapTiledJSON('map', '../../assets/level1_ver2.json');
         this.load.spritesheet('player_sprite', '../../assets/face_sheet.png', {frameWidth: 64, frameHeight: 64});
         this.load.image('soundwave', '../../assets/soundwave.png');
+        this.load.image('ice_cream', '../../assets/ice_cream_cone.png');
     }
 
     create () {
@@ -60,6 +61,15 @@ let Level01 = class extends Phaser.Scene {
         // The player with start position and spritesheet
         this.player = this.physics.add.sprite(100, 2100, 'player_sprite');
 
+        this.iceCreams = this.physics.add.group({
+            key: 'ice_cream',
+            repeat: 6,
+            setXY: { x: 100, y: 2000, stepX: 100 }
+        });
+        this.iceCreams.children.iterate(function(child) {
+            child.body.setAllowGravity(false);
+        });
+
         // Set camera to follow player
         this.cameras.main.startFollow(this.player, true, 0.02, 0.01);
         this.cameras.main.setDeadzone(this.worldWidth, 100);
@@ -67,12 +77,12 @@ let Level01 = class extends Phaser.Scene {
         // Player animations
         this.anims.create({
             key: 'open',
-            frames: [ { key: 'player_sprite', frame: 1 } ],
+            frames: [ { key: 'player_sprite', frame: 0 } ],
             frameRate: 20
         });
         this.anims.create({
             key: 'closed',
-            frames: [ { key: 'player_sprite', frame: 0 } ],
+            frames: [ { key: 'player_sprite', frame: 1 } ],
             frameRate: 20
         });
 
@@ -94,8 +104,11 @@ let Level01 = class extends Phaser.Scene {
         this.TICKSPERWAVE = 5;
         this.current_count = 0;
 
-        //  Collide the player and the stars with the platforms
+        //  Collide the player and the blocks
         this.physics.add.collider(this.player, niceBlocks);
+
+        // Collision between player and ice creams
+        this.physics.add.overlap(this.player, this.iceCreams, this.collectIceCream, null, this);
 
         //const debugGraphics = this.add.graphics().setAlpha(0.75);
         //niceBlocks.renderDebug(debugGraphics, {
@@ -191,5 +204,11 @@ let Level01 = class extends Phaser.Scene {
             this.player.rotation = -this.player.rotation;
         }
     }
-};
 
+    collectIceCream(player, iceCream) {
+
+        iceCream.disableBody(true, true);
+        this.score += 10;
+        this.inGameHUD.setScoreText(this.score);
+    }
+};
