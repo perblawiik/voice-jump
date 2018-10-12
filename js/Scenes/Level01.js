@@ -62,17 +62,17 @@ let Level01 = class extends Phaser.Scene {
 
         // Set camera to follow player
         this.cameras.main.startFollow(this.player, true, 0.02, 0.01);
-        this.cameras.main.setDeadzone(this.worldWidth, 200);
+        this.cameras.main.setDeadzone(this.worldWidth, 100);
 
         // Player animations
         this.anims.create({
             key: 'open',
-            frames: [ { key: 'player_sprite', frame: 2 } ],
+            frames: [ { key: 'player_sprite', frame: 1 } ],
             frameRate: 20
         });
         this.anims.create({
             key: 'closed',
-            frames: [ { key: 'player_sprite', frame: 1 } ],
+            frames: [ { key: 'player_sprite', frame: 0 } ],
             frameRate: 20
         });
 
@@ -96,9 +96,6 @@ let Level01 = class extends Phaser.Scene {
 
         //  Collide the player and the stars with the platforms
         this.physics.add.collider(this.player, niceBlocks);
-
-        //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
-        //this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
 
         //const debugGraphics = this.add.graphics().setAlpha(0.75);
         //niceBlocks.renderDebug(debugGraphics, {
