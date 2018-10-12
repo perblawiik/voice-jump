@@ -118,7 +118,7 @@ let Level01 = class extends Phaser.Scene {
             lifespan:1000,
             speed: 0,
             angle: 180,
-            scale: {start:0.01, end: 0.50},
+            scale: {start:0.01, end: 1.0},
             alpha: {start:1.0, end: 0.0},
             quantity: 1, 
             on: false
@@ -221,7 +221,7 @@ let Level01 = class extends Phaser.Scene {
             //this.soundwave_particles.setPosition(this.player.x, this.player.y);
             if(this.current_count > (this.TICKSPERWAVE))
             {
-                this.soundwave_particles.emitParticle(1, this.player.x, this.player.y);
+                this.soundwave_particles.emitParticle(1, this.player.x, this.player.y+10);
                 this.current_count = 0;
             }
             this.current_count += Math.sqrt(speedY*speedY + speedX*speedX)/500;    
