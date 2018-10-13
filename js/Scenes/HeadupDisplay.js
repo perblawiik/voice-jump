@@ -30,24 +30,24 @@ let HeadupDisplay = class extends Phaser.Scene {
         };
 
         // Frequency label
-        this.add.text(382, 6, 'Frequency:', textStyle);
+        this.add.text(385, 6, 'Frequency:', textStyle);
         // Outer frequency bar
-        this.add.image(702,24, 'freq_bar_outer').setScale(0.5);
+        this.add.image(705,24, 'freq_bar_outer').setScale(0.5);
         // Inner frequency bar
-        this.frequencyBarInner = this.add.image(585,24, 'freq_bar_inner').setScale(0.5).setOrigin(0, 0.5);
+        this.frequencyBarInner = this.add.image(588,24, 'freq_bar_inner').setScale(0.5).setOrigin(0, 0.5);
 
         // The geometry for the mask
         this.frequencyMaskGeometry = new Phaser.GameObjects.Graphics(this);
-        this.frequencyMaskGeometry.fillRect(585, 0, this.innerBarLenght, 50);
+        this.frequencyMaskGeometry.fillRect(588, 0, this.innerBarLenght, 50);
         // Attach a mask to the inner bar
         this.frequencyBarInner.mask = new Phaser.Display.Masks.GeometryMask(this, this.frequencyMaskGeometry);
         // Hide the inner bar
         this.frequencyMaskGeometry.x = -this.innerBarLenght;
 
         // Score
-        this.scoreText = this.add.text(56, 10, '0', textStyle);
+        this.scoreText = this.add.text(75, 8, '0', textStyle);
         // Score icon
-        this.add.image(38, 24, 'score_icon');
+        this.add.image(55, 24, 'score_icon');
 
     }
 
