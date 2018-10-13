@@ -100,7 +100,8 @@ let Level01 = class extends Phaser.Scene {
             quantity: 1, 
             on: false
         });
-        this.TICKSPERWAVE = 5;
+        // Milliseconds
+        this.TIME_PER_WAVE = 150;
         this.current_count = 0;
 
         //  Collide the player and the blocks
@@ -119,7 +120,7 @@ let Level01 = class extends Phaser.Scene {
         this.cameras.main.setBackgroundColor("#00C8FF");
     }
 
-    update () {
+    update (time, delta) {
         // Break game loop
         if (this.gameOver) {
             return;
@@ -173,12 +174,12 @@ let Level01 = class extends Phaser.Scene {
             }
 
             //Particle update
-            if(this.current_count > (this.TICKSPERWAVE))
+            if(this.current_count > (this.TIME_PER_WAVE))
             {
                 this.soundwave_particles.emitParticle(1, this.player.x, this.player.y);
                 this.current_count = 0;
             }
-            this.current_count += Math.sqrt(speedY*speedY + speedX*speedX)/500;    
+            this.current_count += delta;
             
         }
         else {
