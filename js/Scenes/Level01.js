@@ -36,8 +36,8 @@ let Level01 = class extends Phaser.Scene {
     }
 
     preload () {
-        this.load.image('tiles', '../../assets/block.png');
-        this.load.tilemapTiledJSON('map', '../../assets/level1_ver2.json');
+        this.load.image('tiles', '../../assets/tiles2.png');
+        this.load.tilemapTiledJSON('map', '../../assets/level1_ver4.json');
         this.load.spritesheet('player_sprite', '../../assets/face_sheet.png', {frameWidth: 64, frameHeight: 64});
         this.load.image('soundwave', '../../assets/soundwave.png');
         this.load.image('ice_cream', '../../assets/ice_cream_cone.png');
@@ -46,10 +46,15 @@ let Level01 = class extends Phaser.Scene {
     create () {
 
         const map = this.make.tilemap({key: 'map'});
-        const tileset = map.addTilesetImage('block', 'tiles');
+        const tileset = map.addTilesetImage('tiles2', 'tiles');
 
-        const niceBlocks = map.createStaticLayer('Tile Layer 1', tileset, 0, 0);
+        //const background = map.createStaticLayer('background', tileset, 0, 0);
+
+        const niceBlocks = map.createStaticLayer('niceBlocks', tileset, 0, 0);
         niceBlocks.setCollisionByProperty({ collides: true });
+
+        const evilBlocks = map.createStaticLayer('evilBlocks', tileset, 0, 0);
+        evilBlocks.setCollisionByProperty({ collides: true });
 
         // Instance for feeding information to the Head-up Display
         this.inGameHUD = this.scene.manager.getScene("HUD");
@@ -106,6 +111,8 @@ let Level01 = class extends Phaser.Scene {
 
         //  Collide the player and the blocks
         this.physics.add.collider(this.player, niceBlocks);
+
+        this.physics.add.collider(this.player, evilBlocks);
 
         // Collision between player and ice creams
         this.physics.add.overlap(this.player, this.iceCreams, this.collectIceCream, null, this);
