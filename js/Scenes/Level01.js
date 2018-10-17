@@ -112,7 +112,7 @@ let Level01 = class extends Phaser.Scene {
         //  Collide the player and the blocks
         this.physics.add.collider(this.player, niceBlocks);
 
-        this.physics.add.collider(this.player, evilBlocks);
+        this.physics.add.collider(this.player, evilBlocks, this.hitEvilBlock, null, this);
 
         // Collision between player and ice creams
         this.physics.add.overlap(this.player, this.iceCreams, this.collectIceCream, null, this);
@@ -125,6 +125,27 @@ let Level01 = class extends Phaser.Scene {
         //});
 
         this.cameras.main.setBackgroundColor("#00C8FF");
+
+        let buttonStyle = {
+            fill: '#EEAD0E',
+            fontSize: '52px',
+            fontStyle: 'bold',
+            boundsAlignH: 'center',
+            boundsAlignV: 'center',
+        };
+        this.startButton = this.add.text(420, 2000, 'Try Again', buttonStyle )
+            .setPadding(8, 8, 8, 8)
+            .setShadow(2,2,'#000', 2, false, true)
+            .setOrigin(0.5, 0.5)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => this.buttonActiveState() )
+            .on('pointerover', () => this.buttonHoverState() )
+            .on('pointerout', () => this.buttonIdleState() )
+            .on('pointerup', () => {
+                this.buttonHoverState();
+                this.startGame();
+            });
+        this.startButton.alpha = 0;
     }
 
     update (time, delta) {
@@ -140,7 +161,7 @@ let Level01 = class extends Phaser.Scene {
         // Find the most dominating frequency
         let maxAmplitude = Math.max.apply(null, this.spectrum);
 
-        if (maxAmplitude > 50) {
+        if (maxAmplitude > 150) {
             //Scream Animation
             this.player.anims.play('open');
 
@@ -217,5 +238,37 @@ let Level01 = class extends Phaser.Scene {
         iceCream.disableBody(true, true);
         this.score += 10;
         this.inGameHUD.setScoreText(this.score);
+    }
+
+    hitEvilBlock(player, evilBlock) {
+        this.gameOver = true;
+        this.resetGame(player);
+        console.log("here");
+        this.startButton.alpha = 1;
+    }
+    resetGame(player) {
+        player.x = 100;
+        player.y = 2100;
+        player.setVelocity(0,0);
+        player.rotation = 0;
+        player.body.acceleration.x = 0;
+        player.body.acceleration.y = 0;
+    }
+
+    buttonHoverState() {
+        this.startButton.setStyle({fill: '#f8de9e', fontSize: '52px'});
+    }
+
+    buttonIdleState() {
+        this.startButton.setStyle({fill: '#EEAD0E', fontSize: '52px'});
+    }
+
+    buttonActiveState() {
+        this.startButton.setStyle({fontSize: '60px'});
+    }
+
+    startGame() {
+        this.startButton.alpha = 0;
+        this.gameOver = false;
     }
 };
