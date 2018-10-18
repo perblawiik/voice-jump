@@ -104,7 +104,7 @@ let Level01 = class extends Phaser.Scene {
             lifespan:1000,
             speed: 0,
             angle: 180,
-            scale: {start:0.01, end: 0.50},
+            scale: {start:0.1, end: 5.0},
             alpha: {start:1.0, end: 0.0},
             quantity: 1, 
             on: false
