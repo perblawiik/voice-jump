@@ -9,7 +9,7 @@ let scenes = [
 // Game configurations
 let config = {
     type: Phaser.AUTO,
-    width: 800,
+    width: 864,
     height: 600,
     physics: {
         default: 'arcade',

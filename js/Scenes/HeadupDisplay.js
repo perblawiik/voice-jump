@@ -16,29 +16,39 @@ let HeadupDisplay = class extends Phaser.Scene {
 
         this.load.image('freq_bar_outer', '../../assets/frequency_bar_outer1.png');
         this.load.image('freq_bar_inner', '../../assets/frequency_bar_inner_20_parts_gradient_01.png');
+        this.load.image('score_icon', '../../assets/ice_cream_icon_01.png');
     }
 
     create() {
 
         let textStyle = {
             fontSize: '32px',
-            fill: '#000',
-            fontStyle: 'bold'
+            fill: '#ffffff',
+            fontStyle: 'bold',
+            stroke: '#000',
+            strokeThickness: 4
         };
 
-        this.add.image(620,20, 'freq_bar_outer').setScale(0.5);
-        this.frequencyBarInner = this.add.image(503,20, 'freq_bar_inner').setScale(0.5).setOrigin(0, 0.5);
+        // Frequency label
+        this.add.text(385, 6, 'Frequency:', textStyle);
+        // Outer frequency bar
+        this.add.image(705,24, 'freq_bar_outer').setScale(0.5);
+        // Inner frequency bar
+        this.frequencyBarInner = this.add.image(588,24, 'freq_bar_inner').setScale(0.5).setOrigin(0, 0.5);
 
         // The geometry for the mask
         this.frequencyMaskGeometry = new Phaser.GameObjects.Graphics(this);
-        this.frequencyMaskGeometry.fillRect(503, 0, this.innerBarLenght, 50);
+        this.frequencyMaskGeometry.fillRect(588, 0, this.innerBarLenght, 50);
         // Attach a mask to the inner bar
         this.frequencyBarInner.mask = new Phaser.Display.Masks.GeometryMask(this, this.frequencyMaskGeometry);
         // Hide the inner bar
         this.frequencyMaskGeometry.x = -this.innerBarLenght;
 
-        this.scoreText = this.add.text(16, 6, 'Score: 0', textStyle);
-        this.add.text(300, 6, 'Frequency:', textStyle);
+        // Score
+        this.scoreText = this.add.text(75, 8, '0', textStyle);
+        // Score icon
+        this.add.image(55, 24, 'score_icon');
+
     }
 
     update() {
@@ -47,7 +57,7 @@ let HeadupDisplay = class extends Phaser.Scene {
 
     setScoreText (score) {
 
-        this.scoreText.setText('Score: ' + score);
+        this.scoreText.setText(score);
     }
 
     setFrequency (freq) {

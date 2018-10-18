@@ -24,7 +24,7 @@ let Level01 = class extends Phaser.Scene {
 
         // Game world dimensions
         this.worldHeight = 2400;
-        this.worldWidth = 800;
+        this.worldWidth = 864;
 
         // Game stuff
         this.score = 0;
@@ -36,57 +36,53 @@ let Level01 = class extends Phaser.Scene {
     }
 
     preload () {
-
-        this.load.image('ground', '../../assets/platform3.png');
-        this.load.image('wall', '../../assets/wall.png');
-        this.load.image('star', '../../assets/star.png');
+        this.load.image('tiles', '../../assets/tiles2.png');
+        this.load.tilemapTiledJSON('map', '../../assets/level1_ver4.json');
         this.load.spritesheet('player_sprite', '../../assets/face_sheet.png', {frameWidth: 64, frameHeight: 64});
         this.load.image('soundwave', '../../assets/soundwave.png');
+        this.load.image('ice_cream', '../../assets/ice_cream_cone.png');
     }
 
     create () {
 
+        const map = this.make.tilemap({key: 'map'});
+        const tileset = map.addTilesetImage('tiles2', 'tiles');
+
+        //const background = map.createStaticLayer('background', tileset, 0, 0);
+
+        const niceBlocks = map.createStaticLayer('niceBlocks', tileset, 0, 0);
+        niceBlocks.setCollisionByProperty({ collides: true });
+
+        const evilBlocks = map.createStaticLayer('evilBlocks', tileset, 0, 0);
+        evilBlocks.setCollisionByProperty({ collides: true });
+
         // Instance for feeding information to the Head-up Display
         this.inGameHUD = this.scene.manager.getScene("HUD");
-
-        // Resizeable window
-        window.addEventListener('resize', this.resize);
-        this.resize();
 
         // Set outer bounds for the game map
         this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
         this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
 
-        // Background colors (will be used to interpolate from light blue to dark blue)
-        this.groundColor = new Phaser.Display.Color(0, 200, 255);
-        this.skyColor = new Phaser.Display.Color(0, 0, 55);
-
-        // The platforms
-        this.platforms = this.physics.add.staticGroup();
-        //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
-        this.platforms.create(400, this.worldHeight, 'ground').setScale(2).refreshBody();
-        this.platforms.create(600, 2200, 'ground');
-        this.platforms.create(50, 2050, 'ground');
-        this.platforms.create(750, 2020, 'ground');
-
-        // The walls
-        this.walls = this.physics.add.staticGroup();
-        this.walls.create(0, this.worldHeight/2, 'wall').setScale(1,6).refreshBody();
-        this.walls.create(800, this.worldHeight/2, 'wall').setScale(1,6).refreshBody();
-
         // The player with start position and spritesheet
-        this.player = this.physics.add.sprite(100, 2200, 'player_sprite');
-        this.player.setBounce(0.2);
-        this.player.setCollideWorldBounds(true);
+        this.player = this.physics.add.sprite(100, 2100, 'player_sprite');
+
+        this.iceCreams = this.physics.add.group({
+            key: 'ice_cream',
+            repeat: 6,
+            setXY: { x: 100, y: 2000, stepX: 100 }
+        });
+        this.iceCreams.children.iterate(function(child) {
+            child.body.setAllowGravity(false);
+        });
 
         // Set camera to follow player
         this.cameras.main.startFollow(this.player, true, 0.02, 0.01);
-        this.cameras.main.setDeadzone(this.worldWidth, 200);
+        this.cameras.main.setDeadzone(this.worldWidth, 100);
 
         // Player animations
         this.anims.create({
             key: 'open',
-            frames: [ { key: 'player_sprite', frame: 2 } ],
+            frames: [ { key: 'player_sprite', frame: 0 } ],
             frameRate: 20
         });
         this.anims.create({
@@ -108,35 +104,51 @@ let Level01 = class extends Phaser.Scene {
             alpha: {start:1.0, end: 0.0},
             quantity: 1, 
             on: false
-
         });
-        this.TICKSPERWAVE = 5;
+        // Milliseconds
+        this.TIME_PER_WAVE = 150;
         this.current_count = 0;
 
-        // Stars to collect, 12 in total
-        this.stars = this.physics.add.group({
-            key: 'star',
-            repeat: 11,
-            setXY: { x: 50, y: 1800, stepX: 60 }
-        });
+        //  Collide the player and the blocks
+        this.physics.add.collider(this.player, niceBlocks);
 
-        this.stars.children.iterate(function (child) {
+        this.physics.add.collider(this.player, evilBlocks, this.hitEvilBlock, null, this);
 
-            // Give each star a slightly different bounce
-            child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.4));
-        });
+        // Collision between player and ice creams
+        this.physics.add.overlap(this.player, this.iceCreams, this.collectIceCream, null, this);
 
-        //  Collide the player and the stars with the platforms
-        this.physics.add.collider(this.player, this.platforms);
-        this.physics.add.collider(this.stars, this.platforms);
-        //  Changes player direction when player collide with walls
-        this.physics.add.collider(this.player, this.walls, this.changePlayerDirection, null, this);
+        //const debugGraphics = this.add.graphics().setAlpha(0.75);
+        //niceBlocks.renderDebug(debugGraphics, {
+            //tileColor: null, // Color of non-colliding tiles
+            //collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
+            //faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
+        //});
 
-        //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
-        this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
+        this.cameras.main.setBackgroundColor("#00C8FF");
+
+        let buttonStyle = {
+            fill: '#EEAD0E',
+            fontSize: '52px',
+            fontStyle: 'bold',
+            boundsAlignH: 'center',
+            boundsAlignV: 'center',
+        };
+        this.startButton = this.add.text(420, 2000, 'Try Again', buttonStyle )
+            .setPadding(8, 8, 8, 8)
+            .setShadow(2,2,'#000', 2, false, true)
+            .setOrigin(0.5, 0.5)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => this.buttonActiveState() )
+            .on('pointerover', () => this.buttonHoverState() )
+            .on('pointerout', () => this.buttonIdleState() )
+            .on('pointerup', () => {
+                this.buttonHoverState();
+                this.startGame();
+            });
+        this.startButton.alpha = 0;
     }
 
-    update () {
+    update (time, delta) {
         // Break game loop
         if (this.gameOver) {
             return;
@@ -149,7 +161,7 @@ let Level01 = class extends Phaser.Scene {
         // Find the most dominating frequency
         let maxAmplitude = Math.max.apply(null, this.spectrum);
 
-        if (maxAmplitude > 50) {
+        if (maxAmplitude > 150) {
             //Scream Animation
             this.player.anims.play('open');
 
@@ -190,17 +202,12 @@ let Level01 = class extends Phaser.Scene {
             }
 
             //Particle update
-            //this.soundwave_particles.setSpeedX(40*Math.cos(theta + Math.PI));
-            //this.soundwave_particles.setSpeedY(40*Math.sin(theta + Math.PI));
-
-            //this.soundwave_particles.setAngle(this.player.angle);
-            //this.soundwave_particles.setPosition(this.player.x, this.player.y);
-            if(this.current_count > (this.TICKSPERWAVE))
+            if(this.current_count > (this.TIME_PER_WAVE))
             {
                 this.soundwave_particles.emitParticle(1, this.player.x, this.player.y);
                 this.current_count = 0;
             }
-            this.current_count += Math.sqrt(speedY*speedY + speedX*speedX)/500;    
+            this.current_count += delta;
             
         }
         else {
@@ -217,48 +224,51 @@ let Level01 = class extends Phaser.Scene {
             }
         }
 
-        // Interpolate the background color
-        let hexColor = Phaser.Display.Color.Interpolate.ColorWithColor(this.skyColor, this.groundColor, this.worldHeight, this.player.y);
-        this.cameras.main.setBackgroundColor(hexColor);
-    }
-
-    collectStar (player, star) {
-
-        star.disableBody(true, true);
-
-        // Add and update the score
-        this.score += 10;
-        // Update score in HUD
-        this.inGameHUD.setScoreText(this.score);
-
-        if (this.stars.countActive(true) === 0)
+        // Change player direction when hitting walls
+        if(this.player.body.onWall())
         {
-            // A new batch of stars to collect
-            this.stars.children.iterate(function (child) {
-
-                child.enableBody(true, child.x, 0, true, true);
-            });
+            this.playerDirectionX *= -1;
+            this.player.body.setVelocityX(this.playerDirectionX * 300);
+            this.player.rotation = -this.player.rotation;
         }
     }
 
-    changePlayerDirection (player) {
+    collectIceCream(player, iceCream) {
 
-        this.playerDirectionX *= -1;
-        this.player.body.setVelocityX(this.playerDirectionX * 300);
-        this.player.rotation = -this.player.rotation;
+        iceCream.disableBody(true, true);
+        this.score += 10;
+        this.inGameHUD.setScoreText(this.score);
     }
 
-    resize() {
-        let canvas = game.canvas, width = window.innerWidth, height = window.innerHeight;
-        let wratio = width / height, ratio = canvas.width / canvas.height;
+    hitEvilBlock(player, evilBlock) {
+        this.gameOver = true;
+        this.resetGame(player);
+        console.log("here");
+        this.startButton.alpha = 1;
+    }
+    resetGame(player) {
+        player.x = 100;
+        player.y = 2100;
+        player.setVelocity(0,0);
+        player.rotation = 0;
+        player.body.acceleration.x = 0;
+        player.body.acceleration.y = 0;
+    }
 
-        if (wratio < ratio) {
-            canvas.style.width = width + "px";
-            canvas.style.height = (width / ratio) + "px";
-        } else {
-            canvas.style.width = (height * ratio) + "px";
-            canvas.style.height = height + "px";
-        }
+    buttonHoverState() {
+        this.startButton.setStyle({fill: '#f8de9e', fontSize: '52px'});
+    }
+
+    buttonIdleState() {
+        this.startButton.setStyle({fill: '#EEAD0E', fontSize: '52px'});
+    }
+
+    buttonActiveState() {
+        this.startButton.setStyle({fontSize: '60px'});
+    }
+
+    startGame() {
+        this.startButton.alpha = 0;
+        this.gameOver = false;
     }
 };
-
