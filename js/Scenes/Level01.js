@@ -28,7 +28,6 @@ let Level01 = class extends Phaser.Scene {
 
         // Game stuff
         this.score = 0;
-        this.gameOver = false;
         this.playerDirectionX = 1;
 
         // Activate HUD
@@ -47,8 +46,6 @@ let Level01 = class extends Phaser.Scene {
 
         const map = this.make.tilemap({key: 'map'});
         const tileset = map.addTilesetImage('tiles2', 'tiles');
-
-        //const background = map.createStaticLayer('background', tileset, 0, 0);
 
         const niceBlocks = map.createStaticLayer('niceBlocks', tileset, 0, 0);
         niceBlocks.setCollisionByProperty({ collides: true });
@@ -125,111 +122,90 @@ let Level01 = class extends Phaser.Scene {
         //});
 
         this.cameras.main.setBackgroundColor("#00C8FF");
-
-        let buttonStyle = {
-            fill: '#EEAD0E',
-            fontSize: '52px',
-            fontStyle: 'bold',
-            boundsAlignH: 'center',
-            boundsAlignV: 'center',
-        };
-        this.startButton = this.add.text(420, 2000, 'Try Again', buttonStyle )
-            .setPadding(8, 8, 8, 8)
-            .setShadow(2,2,'#000', 2, false, true)
-            .setOrigin(0.5, 0.5)
-            .setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => this.buttonActiveState() )
-            .on('pointerover', () => this.buttonHoverState() )
-            .on('pointerout', () => this.buttonIdleState() )
-            .on('pointerup', () => {
-                this.buttonHoverState();
-                this.startGame();
-            });
-        this.startButton.alpha = 0;
     }
 
     update (time, delta) {
-        // Break game loop
-        if (this.gameOver) {
-            return;
-        }
 
-        // Set which audio source to analyze
-        this.fft.setInput(this.microphone);
-        // Get frequency spectrum
-        this.spectrum = this.fft.analyze();
-        // Find the most dominating frequency
-        let maxAmplitude = Math.max.apply(null, this.spectrum);
+        if(this.physics.world.isPaused === false) {
 
-        if (maxAmplitude > 150) {
-            //Scream Animation
-            this.player.anims.play('open');
+            // Set which audio source to analyze
+            this.fft.setInput(this.microphone);
+            // Get frequency spectrum
+            this.spectrum = this.fft.analyze();
+            // Find the most dominating frequency
+            let maxAmplitude = Math.max.apply(null, this.spectrum);
 
-            // Find the index of the frequency
-            let n = this.spectrum.indexOf(maxAmplitude);
+            if (maxAmplitude > 150) {
+                //Scream Animation
+                this.player.anims.play('open');
 
-            // Calculate the frequency
-            this.frequency = Math.round((n + 1) * this.sampleResolution + 20);
+                // Find the index of the frequency
+                let n = this.spectrum.indexOf(maxAmplitude);
 
-            // Set maximum frequency
-            let maxFreq = 2000;
-            this.frequency = Math.min(maxFreq, this.frequency);
+                // Calculate the frequency
+                this.frequency = Math.round((n + 1) * this.sampleResolution + 20);
 
-            // Update frequency in HUD
-            this.inGameHUD.setFrequency(this.frequency);
+                // Set maximum frequency
+                let maxFreq = 2000;
+                this.frequency = Math.min(maxFreq, this.frequency);
 
-            let maxAngle = Math.PI / 2;
-            let theta = this.frequency * maxAngle / maxFreq;
+                // Update frequency in HUD
+                this.inGameHUD.setFrequency(this.frequency);
 
-            theta = Math.min(maxAngle, theta);
-            theta = Math.max(0, theta);
+                let maxAngle = Math.PI / 2;
+                let theta = this.frequency * maxAngle / maxFreq;
 
-            let speedX = this.playerDirectionX * maxAmplitude * Math.cos(theta);
-            let speedY = (-1) * maxAmplitude * Math.sin(theta);
+                theta = Math.min(maxAngle, theta);
+                theta = Math.max(0, theta);
 
-            this.player.setVelocity(speedX, speedY);
+                let speedX = this.playerDirectionX * maxAmplitude * Math.cos(theta);
+                let speedY = (-1) * maxAmplitude * Math.sin(theta);
 
-            // Add rotation to the player sprite
-            let playerRotation = this.playerDirectionX*Math.PI/2 - this.playerDirectionX*theta;
-            let threshold = Math.PI/180;
-            if (Math.abs(playerRotation - this.player.rotation) > threshold) {
-                if (playerRotation > this.player.rotation) {
-                    this.player.rotation = this.player.rotation + threshold;
+                this.player.setVelocity(speedX, speedY);
+
+                // Add rotation to the player sprite
+                let playerRotation = this.playerDirectionX*Math.PI/2 - this.playerDirectionX*theta;
+                let threshold = Math.PI/180;
+                if (Math.abs(playerRotation - this.player.rotation) > threshold) {
+                    if (playerRotation > this.player.rotation) {
+                        this.player.rotation = this.player.rotation + threshold;
+                    }
+                    else {
+                        this.player.rotation = this.player.rotation - threshold;
+                    }
                 }
-                else {
-                    this.player.rotation = this.player.rotation - threshold;
+
+                //Particle update
+                if(this.current_count > (this.TIME_PER_WAVE))
+                {
+                    this.soundwave_particles.emitParticle(1, this.player.x, this.player.y);
+                    this.current_count = 0;
+                }
+                this.current_count += delta;
+
+            }
+            else {
+                // Play closed mouth animation for player
+                this.player.anims.play('closed');
+
+                // Deaccelerate the player
+                this.player.body.acceleration.x = -this.player.body.velocity.x;
+
+                // Update frequency in HUD (decrease frequency to zero)
+                if (this.frequency > 0) {
+                    this.frequency = this.frequency - 20;
+                    this.inGameHUD.setFrequency(Math.max(0, this.frequency));
                 }
             }
 
-            //Particle update
-            if(this.current_count > (this.TIME_PER_WAVE))
+            // Change player direction when hitting walls
+            if(this.player.body.onWall())
             {
-                this.soundwave_particles.emitParticle(1, this.player.x, this.player.y);
-                this.current_count = 0;
+                this.playerDirectionX *= -1;
+                this.player.body.setVelocityX(this.playerDirectionX * 300);
+                this.player.rotation = -this.player.rotation;
             }
-            this.current_count += delta;
-            
-        }
-        else {
-            // Play closed mouth animation for player
-            this.player.anims.play('closed');
 
-            // Deaccelerate the player
-            this.player.body.acceleration.x = -this.player.body.velocity.x;
-
-            // Update frequency in HUD (decrease frequency to zero)
-            if (this.frequency > 0) {
-                this.frequency = this.frequency - 20;
-                this.inGameHUD.setFrequency(Math.max(0, this.frequency));
-            }
-        }
-
-        // Change player direction when hitting walls
-        if(this.player.body.onWall())
-        {
-            this.playerDirectionX *= -1;
-            this.player.body.setVelocityX(this.playerDirectionX * 300);
-            this.player.rotation = -this.player.rotation;
         }
     }
 
@@ -241,34 +217,37 @@ let Level01 = class extends Phaser.Scene {
     }
 
     hitEvilBlock(player, evilBlock) {
-        this.gameOver = true;
-        this.resetGame(player);
-        console.log("here");
-        this.startButton.alpha = 1;
-    }
-    resetGame(player) {
-        player.x = 100;
-        player.y = 2100;
-        player.setVelocity(0,0);
-        player.rotation = 0;
-        player.body.acceleration.x = 0;
-        player.body.acceleration.y = 0;
+
+        // Freeze the game
+        this.physics.world.isPaused = true;
+        this.scene.manager.getScene("In Game Menu").currentLevel = this.scene.key;
+        // Display in game menu (reset button)
+        this.scene.manager.start("In Game Menu");
     }
 
-    buttonHoverState() {
-        this.startButton.setStyle({fill: '#f8de9e', fontSize: '52px'});
-    }
+    resetLevel() {
+        this.score = 0;
+        this.inGameHUD.setScoreText(this.score);
 
-    buttonIdleState() {
-        this.startButton.setStyle({fill: '#EEAD0E', fontSize: '52px'});
-    }
+        this.player.x = 100;
+        this.player.y = 2100;
+        this.player.setVelocity(0,0);
+        this.player.rotation = 0;
+        this.player.body.acceleration.x = 0;
+        this.player.body.acceleration.y = 0;
 
-    buttonActiveState() {
-        this.startButton.setStyle({fontSize: '60px'});
-    }
+        this.iceCreams.clear(false,true);
+        this.iceCreams = this.physics.add.group({
+            key: 'ice_cream',
+            repeat: 6,
+            setXY: { x: 100, y: 2000, stepX: 100 }
+        });
+        this.iceCreams.children.iterate(function(child) {
+            child.body.setAllowGravity(false);
+        });
+        this.physics.add.overlap(this.player, this.iceCreams, this.collectIceCream, null, this);
 
-    startGame() {
-        this.startButton.alpha = 0;
-        this.gameOver = false;
+        this.physics.world.isPaused = false;
+        this.scene.manager.stop("In Game Menu");
     }
 };
