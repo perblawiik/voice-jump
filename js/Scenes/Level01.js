@@ -108,7 +108,6 @@ let Level01 = class extends Phaser.Scene {
 
         //  Collide the player and the blocks
         this.physics.add.collider(this.player, niceBlocks);
-
         this.physics.add.collider(this.player, evilBlocks, this.hitEvilBlock, null, this);
 
         // Collision between player and ice creams
