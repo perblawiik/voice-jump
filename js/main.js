@@ -3,7 +3,8 @@
 let scenes = [
     new StartMenu("Start Menu"),
     new Level01("Level 01"),
-    new HeadupDisplay("HUD")
+    new HeadupDisplay("HUD"),
+    new InGameMenu("In Game Menu")
 ];
 
 // Game configurations

@@ -6,14 +6,6 @@ let StartMenu = class extends Phaser.Scene {
         console.log("Scene: <" + sceneName + "> loaded!");
     }
 
-    init() {
-
-    }
-
-    preload() {
-
-    }
-
     create() {
         // Resizeable window
         window.addEventListener('resize', this.resize);
@@ -40,10 +32,6 @@ let StartMenu = class extends Phaser.Scene {
                 this.buttonHoverState();
                 this.startGame();
             });
-    }
-
-    update() {
-
     }
 
     buttonHoverState() {
