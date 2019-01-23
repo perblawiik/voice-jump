@@ -44,6 +44,9 @@ let Level01 = class extends Phaser.Scene {
 
     create () {
 
+        // For level creation
+        //this.cursors = this.input.keyboard.createCursorKeys();
+
         const map = this.make.tilemap({key: 'map'});
         const tileset = map.addTilesetImage('tiles2', 'tiles');
 
@@ -63,14 +66,7 @@ let Level01 = class extends Phaser.Scene {
         // The player with start position and spritesheet
         this.player = this.physics.add.sprite(100, 2100, 'player_sprite');
 
-        this.iceCreams = this.physics.add.group({
-            key: 'ice_cream',
-            repeat: 6,
-            setXY: { x: 100, y: 2000, stepX: 100 }
-        });
-        this.iceCreams.children.iterate(function(child) {
-            child.body.setAllowGravity(false);
-        });
+        this.spawnIceCreams();
 
         // Set camera to follow player
         this.cameras.main.startFollow(this.player, true, 0.02, 0.01);
@@ -125,12 +121,13 @@ let Level01 = class extends Phaser.Scene {
 
     update (time, delta) {
 
+        // Set which audio source to analyze
+        this.fft.setInput(this.microphone);
+        // Get frequency spectrum
+        this.spectrum = this.fft.analyze();
+
         if(this.physics.world.isPaused === false) {
 
-            // Set which audio source to analyze
-            this.fft.setInput(this.microphone);
-            // Get frequency spectrum
-            this.spectrum = this.fft.analyze();
             // Find the most dominating frequency
             let maxAmplitude = Math.max.apply(null, this.spectrum);
 
@@ -206,6 +203,49 @@ let Level01 = class extends Phaser.Scene {
             }
 
         }
+
+        // For level creation
+        /*
+        if (this.cursors.left.isDown)
+            this.player.setVelocityX(-160);
+        else if (this.cursors.right.isDown)
+            this.player.setVelocityX(160);
+        else
+            this.player.setVelocityX(0);
+
+        if (this.cursors.up.isDown)
+            this.player.setVelocityY(-160);
+        else if (this.cursors.down.isDown)
+            this.player.setVelocityY(160);
+        else
+            this.player.setVelocityY(0);
+        */
+    }
+
+    spawnIceCreams () {
+
+        this.iceCreams = this.physics.add.group();
+        this.iceCreams.create(400,2100, 'ice_cream');
+        this.iceCreams.create(575,1950, 'ice_cream');
+        this.iceCreams.create(125,1850, 'ice_cream');
+        this.iceCreams.create(750,1850, 'ice_cream');
+        this.iceCreams.create(575,1725, 'ice_cream');
+        this.iceCreams.create(125,1550, 'ice_cream');
+        this.iceCreams.create(750,1550, 'ice_cream');
+        this.iceCreams.create(550,1400, 'ice_cream');
+        this.iceCreams.create(750,1400, 'ice_cream');
+        this.iceCreams.create(750,1025, 'ice_cream');
+        this.iceCreams.create(525,1025, 'ice_cream');
+        this.iceCreams.create(300,1200, 'ice_cream');
+        this.iceCreams.create(125,1400, 'ice_cream');
+        this.iceCreams.create(125,1200, 'ice_cream');
+        this.iceCreams.create(125,1000, 'ice_cream');
+        this.iceCreams.create(325,700, 'ice_cream');
+        this.iceCreams.create(550,650, 'ice_cream');
+
+        this.iceCreams.children.iterate(function(child) {
+            child.body.setAllowGravity(false);
+        });
     }
 
     collectIceCream(player, iceCream) {
@@ -232,18 +272,12 @@ let Level01 = class extends Phaser.Scene {
         this.player.y = 2100;
         this.player.setVelocity(0,0);
         this.player.rotation = 0;
+        this.playerDirectionX = 1;
         this.player.body.acceleration.x = 0;
         this.player.body.acceleration.y = 0;
 
         this.iceCreams.clear(false,true);
-        this.iceCreams = this.physics.add.group({
-            key: 'ice_cream',
-            repeat: 6,
-            setXY: { x: 100, y: 2000, stepX: 100 }
-        });
-        this.iceCreams.children.iterate(function(child) {
-            child.body.setAllowGravity(false);
-        });
+        this.spawnIceCreams();
         this.physics.add.overlap(this.player, this.iceCreams, this.collectIceCream, null, this);
 
         this.physics.world.isPaused = false;
